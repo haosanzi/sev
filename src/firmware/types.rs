@@ -5,6 +5,9 @@ use crate::Version;
 
 use std::marker::PhantomData;
 
+use serde::{Deserialize, Serialize};
+use serde_big_array::BigArray;
+
 /// Reset the platform's persistent state.
 ///
 /// (Chapter 5.5)
@@ -149,6 +152,60 @@ impl<'a> GetId<'a> {
     /// kernel will write the length of the unique CPU ID to `GetId.id_len`.
     pub fn as_slice(&self) -> &[u8] {
         unsafe { std::slice::from_raw_parts(self.id_addr as *const u8, self.id_len as _) }
+    }
+}
+
+/// Get the SEV guest attestation report
+///
+/// /// (Chapter 6.8; Table 60)
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[repr(C, packed)]
+#[allow(missing_docs)]
+pub struct AttestationReport {
+    pub monce: [u8; 16],
+    pub launch_digest: [u8; 32],
+    pub policy: u32,
+    pub sig_usage: u32,
+    pub sig_algo: u32,
+    pub reserved: u32,
+    #[serde(with = "BigArray")]
+    pub sig1: [u8; 144],
+}
+
+impl Default for AttestationReport {
+    #[inline]
+    fn default() -> AttestationReport {
+        AttestationReport {
+            monce: [0; 16],
+            launch_digest: [0; 32],
+            policy: 0,
+            sig_usage: 0,
+            sig_algo: 0,
+            reserved: 0,
+            sig1: [0; 144],
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+#[repr(C, packed)]
+pub struct ReportExport<'a> {
+    pub monce: [u8; 16],
+    pub addr: u64,
+    pub len: u32,
+    pub handle: u32,
+    _phantom: PhantomData<&'a ()>,
+}
+
+impl<'a> ReportExport<'a> {
+    pub fn new(report: &'a mut AttestationReport, guest_handle: u32, m: [u8; 16]) -> Self {
+        Self {
+            addr: report as *mut _ as _,
+            monce: m,
+            len: std::mem::size_of_val(report) as _,
+            handle: guest_handle,
+            _phantom: PhantomData,
+        }
     }
 }
 

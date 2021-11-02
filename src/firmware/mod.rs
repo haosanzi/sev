@@ -15,7 +15,7 @@ use std::{error, io};
 #[cfg(target_os = "linux")]
 pub use linux::Firmware;
 
-pub use types::{PlatformStatusFlags, TcbVersion};
+pub use types::{AttestationReport, PlatformStatusFlags, TcbVersion};
 
 /// There are a number of error conditions that can occur between this
 /// layer all the way down to the SEV platform. Most of these cases have

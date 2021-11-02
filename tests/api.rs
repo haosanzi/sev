@@ -122,6 +122,22 @@ fn get_identifier() {
 
 #[cfg_attr(not(has_sev), ignore)]
 #[test]
+fn get_report() {
+    use rand::Rng;
+
+    let mut fw = Firmware::open().unwrap();
+
+    let guest_handle = 1;
+    let mut monce = [0_u8; 16];
+    rand::thread_rng().fill(&mut monce);
+
+    let report = fw.get_attestation_report(guest_handle, monce).unwrap();
+
+    println!("report is {:X?}", report);
+}
+
+#[cfg_attr(not(has_sev), ignore)]
+#[test]
 fn snp_platform_status() {
     let mut fw = Firmware::open().unwrap();
     let status = fw.snp_platform_status().unwrap();

@@ -118,6 +118,20 @@ impl Firmware {
         Ok(Identifier(id.as_slice().to_vec()))
     }
 
+    /// Get the SEV guest attestation report
+    pub fn get_attestation_report(
+        &mut self,
+        guest_handle: u32,
+        monce: [u8; 16],
+    ) -> Result<AttestationReport, Indeterminate<Error>> {
+        let mut report: AttestationReport = Default::default();
+        let mut attestaton_report = ReportExport::new(&mut report, guest_handle, monce);
+
+        GET_REPORT.ioctl(&mut self.0, &mut Command::from_mut(&mut attestaton_report))?;
+
+        Ok(report)
+    }
+
     /// Query the SNP platform status.
     pub fn snp_platform_status(&mut self) -> Result<SnpStatus, Indeterminate<Error>> {
         let mut info: SnpPlatformStatus = Default::default();

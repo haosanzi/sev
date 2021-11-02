@@ -22,8 +22,9 @@ impl_const_id! {
     PdhCertExport<'_> = 5,
     PekCertImport<'_> = 6,
     GetId<'_> = 8, /* GET_ID2 is 8, the deprecated GET_ID ioctl is 7 */
+    ReportExport<'_> = 9,
 
-    SnpPlatformStatus = 9,
+    SnpPlatformStatus = 10,
 }
 
 const SEV: Group = Group::new(b'S');
@@ -54,6 +55,9 @@ pub const PEK_CERT_IMPORT: Ioctl<WriteRead, &Command<PekCertImport<'_>>> =
 
 /// Get the CPU's unique ID that can be used for getting a certificate for the CEK public key.
 pub const GET_ID: Ioctl<WriteRead, &Command<GetId<'_>>> = unsafe { SEV.write_read(0) };
+
+/// Get the guest attestation report
+pub const GET_REPORT: Ioctl<WriteRead, &Command<ReportExport<'_>>> = unsafe { SEV.write_read(0) };
 
 /// Return information about the current status and capabilities of the SEV-SNP platform.
 pub const SNP_PLATFORM_STATUS: Ioctl<WriteRead, &Command<SnpPlatformStatus>> =
