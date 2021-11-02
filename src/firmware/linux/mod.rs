@@ -9,7 +9,7 @@ use std::mem::MaybeUninit;
 use std::os::unix::io::{AsRawFd, RawFd};
 
 use super::*;
-use crate::certs::sev::Certificate;
+use crate::certs::{report::AttestationReport, sev::Certificate};
 use linux::ioctl::*;
 use types::*;
 
@@ -116,6 +116,20 @@ impl Firmware {
         GET_ID.ioctl(&mut self.0, &mut Command::from_mut(&mut id))?;
 
         Ok(Identifier(id.as_slice().to_vec()))
+    }
+
+    /// Get the SEV guest attestation report
+    pub fn get_attestation_report(
+        &mut self,
+        guest_handle: u32,
+        monce: [u8; 16],
+    ) -> Result<AttestationReport, Indeterminate<Error>> {
+        let mut report: AttestationReport = Default::default();
+        let mut attestaton_report = ReportExport::new(&mut report, guest_handle, monce);
+
+        GET_REPORT.ioctl(&mut self.0, &mut Command::from_mut(&mut attestaton_report))?;
+
+        Ok(report)
     }
 
     /// Query the SNP platform status.

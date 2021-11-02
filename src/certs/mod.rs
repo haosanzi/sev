@@ -5,6 +5,7 @@
 pub mod builtin;
 pub mod ca;
 mod chain;
+pub mod report;
 pub mod sev;
 #[cfg(feature = "openssl")]
 mod util;

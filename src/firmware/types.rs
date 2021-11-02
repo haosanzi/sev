@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::certs::sev;
+use crate::certs::{report, sev};
 use crate::Version;
 
 use std::marker::PhantomData;
@@ -149,6 +149,31 @@ impl<'a> GetId<'a> {
     /// kernel will write the length of the unique CPU ID to `GetId.id_len`.
     pub fn as_slice(&self) -> &[u8] {
         unsafe { std::slice::from_raw_parts(self.id_addr as *const u8, self.id_len as _) }
+    }
+}
+
+/// Get the SEV guest attestation report
+///
+/// /// (Chapter 6.8; Table 60)
+#[derive(Clone, Copy, Debug)]
+#[repr(C, packed)]
+pub struct ReportExport<'a> {
+    pub monce: [u8; 16],
+    pub addr: u64,
+    pub len: u32,
+    pub handle: u32,
+    _phantom: PhantomData<&'a ()>,
+}
+
+impl<'a> ReportExport<'a> {
+    pub fn new(report: &'a mut report::AttestationReport, guest_handle: u32, m: [u8; 16]) -> Self {
+        Self {
+            addr: report as *mut _ as _,
+            monce: m,
+            len: std::mem::size_of_val(report) as _,
+            handle: guest_handle,
+            _phantom: PhantomData,
+        }
     }
 }
 
